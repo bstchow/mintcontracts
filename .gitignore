@@ -4,3 +4,4 @@ out
 cache
 package-lock.json
 bin
+yarn-error.log
