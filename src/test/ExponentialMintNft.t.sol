@@ -24,7 +24,7 @@ contract ExponentialMintNftTest is Test {
         uint256 existingPrice = nft.price();
         uint256 existingOwnerBalance = OWNER.balance;
         vm.prank(TEST_USER_1);
-        nft.mint{ value: existingPrice}(0x0);
+        nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
         
         assertEq(OWNER.balance, existingOwnerBalance + existingPrice);
         assertEq(nft.balanceOf(TEST_USER_1), 1);
@@ -40,9 +40,9 @@ contract ExponentialMintNftTest is Test {
             
             // Fail to mint if underpaying
             vm.expectRevert(abi.encodeWithSelector(IExponentialMintNft.InsufficientMintValue.selector, existingPrice - 1));
-            nft.mint{ value: existingPrice - 1}(mintHash);
+            nft.mintTo{ value: existingPrice - 1}(mintHash, TEST_USER_1);
 
-            nft.mint{ value: existingPrice}(mintHash);
+            nft.mintTo{ value: existingPrice}(mintHash, TEST_USER_1);
             assertEq(OWNER.balance, existingOwnerBalance + existingPrice);
             assertEq(nft.balanceOf(TEST_USER_1), i + 1);
             assertGt(nft.price(), existingPrice, "Price should increase with each mint");
@@ -53,17 +53,17 @@ contract ExponentialMintNftTest is Test {
     function testCannotUnderpay(uint256 underpaymentAmount) public {
         uint256 existingPrice = nft.price();
         vm.expectRevert(abi.encodeWithSelector(IExponentialMintNft.InsufficientMintValue.selector, existingPrice - 1));
-        nft.mint{ value: existingPrice - 1}(0x0);
+        nft.mintTo{ value: existingPrice - 1}(0x0, TEST_USER_1);
     }
 
     function testCannotRemint() public {
         uint256 existingPrice = nft.price();
         vm.prank(TEST_USER_1);
-        nft.mint{ value: existingPrice}(0x0);
+        nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
         
         existingPrice = nft.price();
         vm.expectRevert(abi.encodeWithSelector(ERC721InvalidSender.selector, address(0x0)));
-        nft.mint{ value: existingPrice}(0x0);
+        nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
     }
 
     function testOnlyOwnerSetters(address caller, address setToAddress, uint256 setToUint, uint96 setToUint96, string memory newUri) public {
@@ -96,7 +96,7 @@ contract ExponentialMintNftTest is Test {
         uint256 existingPrice = nft.price();
         vm.prank(TEST_USER_1);
         bytes32 mintHash = bytes32(uint256(42));
-        nft.mint{ value: existingPrice}(mintHash);
+        nft.mintTo{ value: existingPrice}(mintHash, TEST_USER_1);
 
         assertEq(nft.tokenURI(42), "https://example.com/42");
     }
@@ -110,7 +110,7 @@ contract ExponentialMintNftTest is Test {
         uint256 existingPrice = nft.price();
         uint256 existingFundRecipient = fundRecipient.balance;
         vm.prank(TEST_USER_1);
-        nft.mint{ value: existingPrice}(0x0);
+        nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
         
         assertEq(fundRecipient.balance, existingFundRecipient + existingPrice);
         assertEq(nft.balanceOf(TEST_USER_1), 1);

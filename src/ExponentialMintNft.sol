@@ -29,11 +29,11 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, O
         }
     }
     
-    function mint(bytes32 tokenHash) public payable {
+    function mintTo(bytes32 tokenHash, address mintTo) public payable {
         if(msg.value < price()) {
             revert IExponentialMintNft.InsufficientMintValue(msg.value);
         }
-        _safeMint(msg.sender, uint256(tokenHash));
+        _safeMint(mintTo, uint256(tokenHash));
 
        bool success = payable(fundRecipient).send(msg.value);
        if(!success) {

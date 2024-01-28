@@ -12,7 +12,7 @@ interface IExponentialMintNft {
     error OwnerCouldNotReceiveFunds();
     error DenominatorExceedsEthPrecision();
 
-    function mint(bytes32 tokenHash) payable external;
+    function mintTo(bytes32 tokenHash, address mintTo) payable external;
     function setDefaultRoyalty(address receiver, uint96 royalty) external;
     function setFundRecipient(address _fundRecipient) external;
     function setBaseURI(string memory uri) external;
