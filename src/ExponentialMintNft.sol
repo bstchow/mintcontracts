@@ -1,7 +1,6 @@
 pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 import { IExponentialMintNft } from "./IExponentialMintNft.sol";
@@ -11,14 +10,15 @@ import { IExponentialMintNft } from "./IExponentialMintNft.sol";
  * @notice Mint NFTs for a price determined by an exponential function.
  *         NFT's of any tokenHash can be minted
  */
-contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, Ownable {
+contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, Ownable {
     uint256 exponent;
     uint256 denominator;
 
-    string _currentURI;
+    string _currentBaseURI;
 
     address public fundRecipient;
     uint256 public constant ETH_DECIMALS = 18;
+    bool mintEnded = false;
 
     constructor (string memory name, string memory symbol, address owner, uint256 _exponent, uint256 _denominator) ERC721(name, symbol) Ownable(owner){
         exponent = _exponent;
@@ -30,6 +30,10 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, O
     }
     
     function mintTo(bytes32 tokenHash, address mintTo) public payable {
+        if(mintEnded) {
+            revert IExponentialMintNft.MintEnded();
+        }
+
         if(msg.value < price()) {
             revert IExponentialMintNft.InsufficientMintValue(msg.value);
         }
@@ -41,6 +45,10 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, O
        }
     }
 
+    function endMint() public onlyOwner {
+        mintEnded = true;
+    }
+
     /**
      * @return Price of the next token
      * @notice this will return 0 
@@ -50,15 +58,11 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, O
     }
 
     function _baseURI() view internal override returns (string memory) {
-        return _currentURI;
+        return _currentBaseURI;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, ERC2981) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return super.supportsInterface(interfaceId);
-    }
-
-    function setDefaultRoyalty(address receiver, uint96 royalty) public override onlyOwner {
-        _setDefaultRoyalty(receiver, royalty);
     }
 
     function setFundRecipient(address _fundRecipient) public override onlyOwner {
@@ -66,6 +70,6 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, ERC2981, O
     }
 
     function setBaseURI(string memory uri) public override onlyOwner {
-        _currentURI = uri;
+        _currentBaseURI = uri;
     }
 }
