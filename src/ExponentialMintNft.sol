@@ -11,14 +11,15 @@ import { IExponentialMintNft } from "./IExponentialMintNft.sol";
  *         NFT's of any tokenHash can be minted
  */
 contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, Ownable {
-    uint256 exponent;
-    uint256 denominator;
-
-    string _currentBaseURI;
-
+    uint256 public exponent;
+    uint256 public denominator;
+    string public projectScript;
     address public fundRecipient;
+    string public currentBaseURI;
+    bool public mintEnded = false;
+    
     uint256 public constant ETH_DECIMALS = 18;
-    bool mintEnded = false;
+    
 
     constructor (string memory name, string memory symbol, address owner, uint256 _exponent, uint256 _denominator) ERC721(name, symbol) Ownable(owner){
         exponent = _exponent;
@@ -31,7 +32,7 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, Ownable {
     
     function mintTo(bytes32 tokenHash, address mintTo) public payable {
         if(mintEnded) {
-            revert IExponentialMintNft.MintEnded();
+            revert IExponentialMintNft.CannotMintAfterMintEnded();
         }
 
         if(msg.value < price()) {
@@ -47,6 +48,26 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, Ownable {
 
     function endMint() public onlyOwner {
         mintEnded = true;
+        emit MintEnded();
+    }
+
+    function setFundRecipient(address _fundRecipient) public override onlyOwner {
+        fundRecipient = _fundRecipient;
+        emit FundRecipientSet(_fundRecipient);
+    }
+
+    function setBaseURI(string memory uri) public override onlyOwner {
+        currentBaseURI = uri;
+        emit BaseURISet(uri);
+    }
+
+    function setProjectScript(string memory script) public override onlyOwner {
+        if(mintEnded) {
+            revert IExponentialMintNft.CannotSetScriptAfterMintEnded();
+        }
+
+        projectScript = script;
+        emit ProjectScriptUpdated();
     }
 
     /**
@@ -58,18 +79,10 @@ contract ExponentialMintNft is IExponentialMintNft, ERC721Enumerable, Ownable {
     }
 
     function _baseURI() view internal override returns (string memory) {
-        return _currentBaseURI;
+        return currentBaseURI;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return super.supportsInterface(interfaceId);
-    }
-
-    function setFundRecipient(address _fundRecipient) public override onlyOwner {
-        fundRecipient = _fundRecipient;
-    }
-
-    function setBaseURI(string memory uri) public override onlyOwner {
-        _currentBaseURI = uri;
     }
 }

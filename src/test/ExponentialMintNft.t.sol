@@ -7,7 +7,7 @@ import "forge-std/Test.sol";
 
 contract ExponentialMintNftTest is Test {
     uint256 exponent = 3;
-    uint256 denominator = 10000000;
+    uint256 denominator = 1000000;
     ExponentialMintNft nft;
     
     address constant OWNER = address(uint160(uint256(keccak256("OWNER"))));
@@ -86,14 +86,42 @@ contract ExponentialMintNftTest is Test {
         nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
     }
 
-    function testOnlyOwnerSetters(address caller, address setToAddress, uint256 setToUint, uint96 setToUint96, string memory newUri) public {
-        vm.assume(caller != OWNER);
-        vm.prank(caller);
+    function testCannotMintWhenEnded() public {
+        vm.prank(OWNER);
+        nft.endMint();
 
+        uint256 existingPrice = nft.price();
+        vm.prank(TEST_USER_1);
+        vm.expectRevert(abi.encodeWithSelector(IExponentialMintNft.CannotMintAfterMintEnded.selector));
+        nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
+    }
+
+    function testCannotSetProjectScriptWhenEnded(string memory script) public {
+        vm.startPrank(OWNER);
+        nft.endMint();
+
+        vm.expectRevert(abi.encodeWithSelector(IExponentialMintNft.CannotSetScriptAfterMintEnded.selector));
+        nft.setProjectScript(script);
+    }
+
+    function testOnlyOwnerSetters(address caller, address setToAddress, uint256 setToUint, uint96 setToUint96, string memory newUri, string memory projectScript) public {
+        vm.assume(caller != OWNER);
+        vm.startPrank(caller);
         vm.expectRevert();
         nft.setFundRecipient(setToAddress);
         vm.expectRevert();
         nft.setBaseURI(newUri);
+        vm.expectRevert();
+        nft.endMint();
+        vm.expectRevert();
+        nft.setProjectScript(projectScript);
+    }
+
+    function testSetProjectScript(string memory script) public {
+        vm.prank(OWNER);
+        nft.setProjectScript(script);
+
+        assertEq(nft.projectScript(), script);
     }
 
     function testSetBaseURI() public {
@@ -102,7 +130,6 @@ contract ExponentialMintNftTest is Test {
         nft.setBaseURI("https://example.com/");
 
         uint256 existingPrice = nft.price();
-        vm.prank(TEST_USER_1);
         bytes32 mintHash = bytes32(uint256(42));
         nft.mintTo{ value: existingPrice}(mintHash, TEST_USER_1);
 
@@ -117,7 +144,6 @@ contract ExponentialMintNftTest is Test {
 
         uint256 existingPrice = nft.price();
         uint256 existingFundRecipient = fundRecipient.balance;
-        vm.prank(TEST_USER_1);
         nft.mintTo{ value: existingPrice}(0x0, TEST_USER_1);
         
         assertEq(fundRecipient.balance, existingFundRecipient + existingPrice);
