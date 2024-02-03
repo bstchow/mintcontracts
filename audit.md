@@ -7,7 +7,11 @@
 
 ## Findings
 
+### StaticPricedMintNft
+- Make currentPrice immutable
+
 ### LimitedStaticPricedMintNft
+- Make mintLimit immutable
 - _mintEnded_
     - Natspec doesn't match impl. The natspec says "Price of the next token" but the impl returns
       a boolean that tells you if minting is over
