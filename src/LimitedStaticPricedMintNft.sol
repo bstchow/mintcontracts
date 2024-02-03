@@ -7,7 +7,7 @@ import { StaticPricedMintNft } from "./StaticPricedMintNft.sol";
  * @notice Only allow minting a limited number of NFTs for a set price.
  */
 contract LimitedStaticPricedMintNft is StaticPricedMintNft  {
-    uint256 public mintLimit;
+    uint256 public immutable mintLimit;
     
     constructor(string memory name, string memory symbol, address owner, uint256 _price, uint256 _mintLimit) StaticPricedMintNft(name, symbol, owner, _price) {
         mintLimit = _mintLimit;

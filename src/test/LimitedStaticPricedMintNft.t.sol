@@ -21,6 +21,21 @@ contract LimitedStaticPricedMintNftTest is Test {
         vm.deal(TEST_USER_1, 1000 ether);
     }
 
+    function testCannotMintPastTheLimit() public {
+        for (uint i = 1; i <= MINT_LIMIT; ++i) {
+            address minter = address(uint160(i));
+            vm.deal(minter, 1000 ether);
+            vm.prank(minter);
+            nft.mintTo{ value: PRICE }(minter, keccak256(abi.encode(i)));
+        }
+
+        address minter = address(uint160(MINT_LIMIT + 1));
+        vm.deal(minter, 1000 ether);
+        vm.prank(minter);
+        vm.expectRevert(abi.encodeWithSelector(IBaseNft.CannotMintAfterMintEnded.selector));
+        nft.mintTo{ value: PRICE }(minter, keccak256(abi.encode(MINT_LIMIT + 1)));
+    }
+
     function testSimpleMint() public {
         uint256 existingOwnerBalance = OWNER.balance;
         vm.startPrank(TEST_USER_1);

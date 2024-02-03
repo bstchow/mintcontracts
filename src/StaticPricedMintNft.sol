@@ -7,7 +7,7 @@ import { PricedMintNft } from "./PricedMintNft.sol";
  * @notice Mint NFTs for a static price
  */
 contract StaticPricedMintNft is PricedMintNft {
-    uint256 currentPrice;
+    uint256 immutable currentPrice;
 
     constructor (string memory name, string memory symbol, address owner, uint256 _price) PricedMintNft(name, symbol, owner){
         currentPrice = _price;
