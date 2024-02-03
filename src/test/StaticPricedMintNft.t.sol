@@ -1,23 +1,22 @@
 pragma solidity >=0.8.23;
 
-import { ExponentialPricedMintNft } from "../ExponentialPricedMintNft.sol";
+import { StaticPricedMintNft } from "../StaticPricedMintNft.sol";
 import { IPricedMintNft } from "../IPricedMintNft.sol";
 
 import "forge-std/Test.sol";
 
 // TODO: Insufficient test coverage
-contract ExponentialPricedMintNftTest is Test {
-    uint256 exponent = 3;
-    uint256 denominator = 1000000;
-    ExponentialPricedMintNft nft;
+contract StaticPricedMintNftTest is Test {
+    StaticPricedMintNft nft;
     
     address constant OWNER = address(uint160(uint256(keccak256("OWNER"))));
     address constant TEST_USER_1 = address(uint160(uint256(keccak256("TEST_USER_1"))));
+    uint256 constant PRICE = 0.01 ether;
 
     error ERC721InvalidSender(address sender);
 
     function setUp() public {
-        nft = new ExponentialPricedMintNft("ExponentialPricedMintNft", "EMNFT", OWNER, exponent, denominator);
+        nft = new StaticPricedMintNft("StaticPricedMintNft", "SPMNFT", OWNER, PRICE);
         vm.deal(TEST_USER_1, 1000 ether);
     }
 
@@ -29,7 +28,6 @@ contract ExponentialPricedMintNftTest is Test {
         
         assertEq(OWNER.balance, existingOwnerBalance + existingPrice);
         assertEq(nft.balanceOf(TEST_USER_1), 1);
-        assertGt(nft.price(), existingPrice);
     }
 
     function testMints(uint256 seed) public {
@@ -42,38 +40,18 @@ contract ExponentialPricedMintNftTest is Test {
             // Fail to mint if underpaying
             vm.expectRevert(abi.encodeWithSelector(IPricedMintNft.InsufficientMintValue.selector, existingPrice - 1));
             nft.mintTo{ value: existingPrice - 1}(TEST_USER_1, mintHash);
+
             nft.mintTo{ value: existingPrice}(TEST_USER_1, mintHash);
             assertEq(OWNER.balance, existingOwnerBalance + existingPrice);
             assertEq(nft.balanceOf(TEST_USER_1), i + 1);
-            assertGt(nft.price(), existingPrice, "Price should increase with each mint");
         }
         vm.stopPrank();
-    }
-
-    /**
-     * Shouldn't be possible due to overflow protection but just in case
-     */
-    function testOverflow(uint256 seed) public {
-        vm.startPrank(TEST_USER_1);
-        nft = new ExponentialPricedMintNft("ExponentialPricedMintNft", "EMNFT", OWNER, 256, 10**18);
-        
-        uint256 existingPrice = nft.price();
-        bytes32 mintHash = bytes32(seed); 
-
-        vm.deal(TEST_USER_1, existingPrice);
-
-        nft.mintTo{ value: existingPrice}(TEST_USER_1, mintHash);
-
-        vm.expectRevert();
-        existingPrice = nft.price();
-        vm.expectRevert();
-        nft.mintTo{ value: existingPrice}(TEST_USER_1, mintHash);
     }
 
     function testCannotUnderpay(uint256 underpaymentAmount) public {
         uint256 existingPrice = nft.price();
         vm.expectRevert(abi.encodeWithSelector(IPricedMintNft.InsufficientMintValue.selector, existingPrice - 1));
-        nft.mintTo{ value: existingPrice - 1}(TEST_USER_1, 0x0);
+        nft.mintTo{ value: existingPrice - 1}( TEST_USER_1, 0x0);
     }
 
     function testCannotRemint() public {
@@ -86,22 +64,14 @@ contract ExponentialPricedMintNftTest is Test {
         nft.mintTo{ value: existingPrice}(TEST_USER_1, 0x0);
     }
 
-    function testOnlyOwnerSetters(address caller, address setToAddress, uint256 setToUint, uint96 setToUint96, string memory newUri, string memory projectScript) public {
+    function testOnlyOwnerSetters(address caller, address setToAddress, uint256 setToUint, uint96 setToUint96, string memory newUri) public {
         vm.assume(caller != OWNER);
-        vm.startPrank(caller);
+        vm.prank(caller);
+
         vm.expectRevert();
         nft.setFundRecipient(setToAddress);
         vm.expectRevert();
         nft.setBaseURI(newUri);
-        vm.expectRevert();
-        nft.setProjectScript(projectScript);
-    }
-
-    function testSetProjectScript(string memory script) public {
-        vm.prank(OWNER);
-        nft.setProjectScript(script);
-
-        assertEq(nft.projectScript(), script);
     }
 
     function testSetBaseURI() public {
@@ -110,6 +80,7 @@ contract ExponentialPricedMintNftTest is Test {
         nft.setBaseURI("https://example.com/");
 
         uint256 existingPrice = nft.price();
+        vm.prank(TEST_USER_1);
         bytes32 mintHash = bytes32(uint256(42));
         nft.mintTo{ value: existingPrice}(TEST_USER_1, mintHash);
 
@@ -124,10 +95,10 @@ contract ExponentialPricedMintNftTest is Test {
 
         uint256 existingPrice = nft.price();
         uint256 existingFundRecipient = fundRecipient.balance;
+        vm.prank(TEST_USER_1);
         nft.mintTo{ value: existingPrice}(TEST_USER_1, 0x0);
         
         assertEq(fundRecipient.balance, existingFundRecipient + existingPrice);
         assertEq(nft.balanceOf(TEST_USER_1), 1);
-        assertGt(nft.price(), existingPrice);
     }
 }
