@@ -1,11 +1,6 @@
 # LimitedStaticPricedMintNft.sol Audit
 
-## Access Control
-
-- _PricedMintNft#mintTo_(address,bytes32)
-    - public function, expected
-
-## Findings
+## Findings and Recommendations
 
 ### StaticPricedMintNft
 - Make currentPrice immutable
@@ -23,3 +18,17 @@
   // totalSupply is not equivalent because it decreases after burn
   uint256 public mintCount = 0;
   ```
+
+### Checklist
+
+#### Access Control
+- `PricedMintNft`
+  - `mintTo(address,bytes32)`
+    - public function, expected
+  - `setFundRecipient(address)`
+    - onlyOwner - checks out.
+- `BaseNft`
+  - `setBaseURI`
+    - onlyOwner - checks out
+  - `setProjectScript`
+    - onlyOwner - checks out
