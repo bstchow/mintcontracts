@@ -3,6 +3,7 @@ Audited by @daltboy11
 
 Base assumptions
 - owner/fundRecipient are non-malicious
+- I did not look closely at the openzeppelin contracts, as they are already heavily used and tested in the wild
 
 ## Findings and Recommendations
 
