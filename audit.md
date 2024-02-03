@@ -14,8 +14,8 @@ No major issues. Several minor recommendations (❓) and one medium question (�
 
 ### LimitedStaticPricedMintNft
 - Make mintLimit immutable
-- ❓ _mintEnded_
-    - Natspec doesn't match impl. The natspec says "Price of the next token" but the impl returns
+- _mintEnded_
+    - ❓ Natspec doesn't match impl. The natspec says "Price of the next token" but the impl returns
       a boolean that tells you if minting is over
     - Added test to verify the mint limit is enforced.
 
