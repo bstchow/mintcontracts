@@ -1,9 +1,9 @@
-# LimitedStaticPricedMintNft.sol Audit
+# LimitedStaticPricedMintNft Audit
 Audited by @daltboy11
 
 Base assumptions
-- owner/fundRecipient are non-malicious
-- I did not look closely at the openzeppelin contracts, as they are already heavily used and tested in the wild
+- `owner` and `fundRecipient` are non-malicious
+- I did not look closely at the openzeppelin contracts as they are already heavily used and tested in the wild
 
 ## Findings and Recommendations
 
@@ -18,14 +18,17 @@ Base assumptions
     - Added test to verify the mint limit is enforced.
 
 ### BaseNft
-- I don't see burn functionality. I assume that was intended but there's a comment that suggests otherwise
+- I don't see burn functionality. I assumed that was intended but there's a comment that suggests otherwise
   ```
   // totalSupply is not equivalent because it decreases after burn
   uint256 public mintCount = 0;
   ```
+- `generateSeed()` is predictable but afaik it's only used to influence the artwork. It doesn't affect the price,
+  who can mint, and the artwork doesn't have rarity levels,so it looks like an acceptable use of pseudorandomness.
+- Minor, but there's no event emitted for setting `currentBaseUri`
 
 ### PricedMintNft
-- This could be intentional but the _whole_ message value is sent to the fundRecipient even when it exceeds the mint price.
+- This could be intentional.. but the _whole_ message value is sent to the fundRecipient even if it exceeds the mint price.
 - The application defined error `CouldNotSendFunds` isn't necessary if you use `transfer` instead of send.
   And `transfer`, like `send`, does propagates a fixed amount of 2300 gas.
   ```
