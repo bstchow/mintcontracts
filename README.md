@@ -1,6 +1,6 @@
-# Bonded Curve
+# An assortment of mint contracts
 
-A template for quickly getting started with forge
+Forked off of a template for quickly getting started with forge
 
 ---
 
