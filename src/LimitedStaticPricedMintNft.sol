@@ -13,9 +13,6 @@ contract LimitedStaticPricedMintNft is StaticPricedMintNft  {
         mintLimit = _mintLimit;
     }
 
-    /**
-     * @return Price of the next token
-     */
     function mintEnded() view public override returns (bool) {
         return mintCount >= mintLimit;
     }
