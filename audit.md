@@ -1,4 +1,8 @@
 # LimitedStaticPricedMintNft.sol Audit
+Audited by @daltboy11
+
+Base assumptions
+- owner/fundRecipient are non-malicious
 
 ## Findings and Recommendations
 
@@ -26,6 +30,7 @@
   // Reverts if there is an error caused by the receiver
   payable(fundRecipient).transfer(msg.value);
   ```
+- `fundRecipient` can be set to the 0 address. This is minor but if this happens on accident then some mint funds could be lost.
 
 ### Checklist
 
@@ -46,3 +51,11 @@
 Not applicable to this project
 
 #### Safe operations
+- `send` in PricedMintNft#_mintTo looks fine. The usage of `send` appears fine.
+
+#### Checks-effects-interactions
+- `PricedMintNft`
+  - `mintTo(address,bytes32)`
+    - it follows the pattern _and_ has a reentrancy guard. Doubly safe!
+
+There are no other external functions to check for
