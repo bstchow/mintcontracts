@@ -19,6 +19,14 @@
   uint256 public mintCount = 0;
   ```
 
+### PricedMintNft
+- The application defined error `CouldNotSendFunds` isn't necessary if you use `transfer` instead of send.
+  And `transfer`, like `send`, does propagates a fixed amount of 2300 gas.
+  ```
+  // Reverts if there is an error caused by the receiver
+  payable(fundRecipient).transfer(msg.value);
+  ```
+
 ### Checklist
 
 #### Access Control
@@ -32,3 +40,9 @@
     - onlyOwner - checks out
   - `setProjectScript`
     - onlyOwner - checks out
+
+
+#### Proxies
+Not applicable to this project
+
+#### Safe operations
