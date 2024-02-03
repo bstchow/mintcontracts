@@ -25,6 +25,7 @@ Base assumptions
   ```
 
 ### PricedMintNft
+- This could be intentional but the _whole_ message value is sent to the fundRecipient even when it exceeds the mint price.
 - The application defined error `CouldNotSendFunds` isn't necessary if you use `transfer` instead of send.
   And `transfer`, like `send`, does propagates a fixed amount of 2300 gas.
   ```
